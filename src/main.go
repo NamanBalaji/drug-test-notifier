@@ -15,7 +15,6 @@ func main() {
 	fmt.Println(cfg)
 
 	browser, l := browser_automation.GetBrowser(false)
-	defer browser.MustClose()
 	if l != nil {
 		defer l.Cleanup()
 
@@ -24,7 +23,13 @@ func main() {
 	} else {
 		browser.MustConnect()
 	}
+	defer browser.MustClose()
 
 	d := data.NewData()
-	browser_automation.Login(cfg, browser)
+	err := browser_automation.Run(cfg, browser, d)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(d)
 }

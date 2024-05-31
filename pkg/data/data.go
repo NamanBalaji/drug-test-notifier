@@ -4,7 +4,8 @@ type Data struct {
 	BillsDue           int
 	Date               string
 	Selected           bool
-	ConfirmationNumber string
+	ConfirmationNumber int
+	Message            string
 }
 
 func NewData() *Data {

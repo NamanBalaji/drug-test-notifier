@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -15,11 +14,7 @@ type Config struct {
 }
 
 func LoadConfig() Config {
-	envPath, err := filepath.Abs("../.env")
-	if err != nil {
-		log.Fatalf("Error getting absolute path to .env file: %v", err)
-	}
-	err = godotenv.Load(envPath)
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}

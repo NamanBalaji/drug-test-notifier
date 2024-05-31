@@ -2,6 +2,7 @@ package browser_automation
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -14,10 +15,6 @@ import (
 	"github.com/NamanBalaji/drug-test-notifier/pkg/consts"
 	"github.com/NamanBalaji/drug-test-notifier/pkg/data"
 )
-
-// function to log in
-// function to open page
-// function to fill in the login form
 
 func GetBrowser(headless bool) (*rod.Browser, *launcher.Launcher) {
 	if headless {
@@ -55,6 +52,8 @@ func login(cfg config.Config, browser *rod.Browser) {
 
 func goToIFrameAndClickTestStatus(browser *rod.Browser, data *data.Data) error {
 	page := browser.MustPage(consts.IFrameURL).MustWaitStable()
+	defer page.MustClose()
+
 	// get bills due
 	bills, err := getBillsDue(page)
 	if err != nil {
@@ -62,8 +61,43 @@ func goToIFrameAndClickTestStatus(browser *rod.Browser, data *data.Data) error {
 	}
 	data.BillsDue = bills
 
-	//
+	// click the test status button
+	page.MustElement(consts.TestStatusButtonSelector).MustClick()
+	err = getSelectedInfo(page, data)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func getSelectedInfo(page *rod.Page, data *data.Data) error {
+	var err error
+	page.Race().Element(consts.ConfirmationNumberSpanSelector).MustHandle(func(e *rod.Element) {
+		confirmation := e.MustText()
+		fmt.Println("Confirmation number: " + confirmation)
+		confirmationNumber, err := strconv.Atoi(strings.TrimSpace(confirmation))
+		fmt.Println(confirmationNumber)
+		if err != nil {
+			err = fmt.Errorf("error converting confirmation number to string: %s", confirmation)
+		}
+		data.ConfirmationNumber = confirmationNumber
+	}).MustDo()
+
+	selectionMessage := page.MustElement(consts.SelectionStatusSelector).MustText()
+	selectionMessageBool := strings.Split(selectionMessage, " - ")
+	yesOrNo := strings.Split(selectionMessageBool[0], " / ")
+	if yesOrNo[0] == "YES" {
+		data.Selected = true
+	}
+
+	dateParse := strings.Split(selectionMessage, "(")
+	dateDirty := dateParse[1]
+	endIndex := strings.Index(dateDirty, ")")
+	cleanedDateString := dateDirty[:endIndex]
+	data.Date = cleanedDateString
+
+	return err
 }
 
 func getBillsDue(page *rod.Page) (int, error) {
@@ -78,6 +112,20 @@ func getBillsDue(page *rod.Page) (int, error) {
 	return bills, nil
 }
 
-func clickTestStatus(page *rod.Page) {
-	page.MustElement(consts.TestStatusSelector).MustClick()
+func logout(browser *rod.Browser) {
+	page := browser.MustPage(consts.LogoutPage).MustWaitStable()
+	defer page.MustClose()
+}
+
+func Run(cfg config.Config, browser *rod.Browser, data *data.Data) error {
+	login(cfg, browser)
+
+	err := goToIFrameAndClickTestStatus(browser, data)
+	if err != nil {
+		return err
+	}
+
+	logout(browser)
+
+	return nil
 }
