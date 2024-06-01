@@ -12,7 +12,6 @@ import (
 	"github.com/go-rod/rod/lib/launcher"
 
 	"github.com/NamanBalaji/drug-test-notifier/pkg/config"
-	"github.com/NamanBalaji/drug-test-notifier/pkg/consts"
 	"github.com/NamanBalaji/drug-test-notifier/pkg/data"
 )
 
@@ -33,14 +32,14 @@ func GetBrowser(headless bool) (*rod.Browser, *launcher.Launcher) {
 }
 
 func login(cfg config.Config, browser *rod.Browser) {
-	page := browser.MustPage(consts.LoginPageURL).MustWaitStable()
+	page := browser.MustPage(loginPageURL).MustWaitStable()
 	defer page.MustClose()
 
-	page.MustElement(consts.ProgramIdSelector).MustInput(cfg.ProgramId)
-	page.MustElement(consts.UsernameSelector).MustInput(cfg.Username)
-	page.MustElement(consts.PasswordSelector).MustInput(cfg.Password)
+	page.MustElement(programIdSelector).MustInput(cfg.ProgramId)
+	page.MustElement(usernameSelector).MustInput(cfg.Username)
+	page.MustElement(passwordSelector).MustInput(cfg.Password)
 
-	page.MustElement(consts.LoginButtonSelector).MustClick()
+	page.MustElement(loginButtonSelector).MustClick()
 
 	page.Race().Element("#loginBox").MustHandle(func(_ *rod.Element) {
 		panic("Cannot login")
@@ -51,7 +50,7 @@ func login(cfg config.Config, browser *rod.Browser) {
 }
 
 func goToIFrameAndClickTestStatus(browser *rod.Browser, data *data.Data) error {
-	page := browser.MustPage(consts.IFrameURL).MustWaitStable()
+	page := browser.MustPage(iFrameURL).MustWaitStable()
 	defer page.MustClose()
 
 	// get bills due
@@ -62,7 +61,7 @@ func goToIFrameAndClickTestStatus(browser *rod.Browser, data *data.Data) error {
 	data.BillsDue = bills
 
 	// click the test status button
-	page.MustElement(consts.TestStatusButtonSelector).MustClick()
+	page.MustElement(testStatusButtonSelector).MustClick()
 	err = getSelectedInfo(page, data)
 	if err != nil {
 		return err
@@ -73,18 +72,20 @@ func goToIFrameAndClickTestStatus(browser *rod.Browser, data *data.Data) error {
 
 func getSelectedInfo(page *rod.Page, data *data.Data) error {
 	var err error
-	page.Race().Element(consts.ConfirmationNumberSpanSelector).MustHandle(func(e *rod.Element) {
+	page.Race().Element(confirmationNumberSpanSelector).MustHandle(func(e *rod.Element) {
 		confirmation := e.MustText()
-		fmt.Println("Confirmation number: " + confirmation)
 		confirmationNumber, err := strconv.Atoi(strings.TrimSpace(confirmation))
-		fmt.Println(confirmationNumber)
 		if err != nil {
 			err = fmt.Errorf("error converting confirmation number to string: %s", confirmation)
 		}
 		data.ConfirmationNumber = confirmationNumber
 	}).MustDo()
 
-	selectionMessage := page.MustElement(consts.SelectionStatusSelector).MustText()
+	selectionMessage := page.MustElement(selectionStatusSelectorYes).MustText()
+	if selectionMessage == "" {
+		selectionMessage = page.MustElement(selectionStatusSelectorNo).MustText()
+	}
+
 	selectionMessageBool := strings.Split(selectionMessage, " - ")
 	yesOrNo := strings.Split(selectionMessageBool[0], " / ")
 	if yesOrNo[0] == "YES" {
@@ -101,7 +102,7 @@ func getSelectedInfo(page *rod.Page, data *data.Data) error {
 }
 
 func getBillsDue(page *rod.Page) (int, error) {
-	text := page.MustElement(consts.BillsSelector).MustText()
+	text := page.MustElement(billsSelector).MustText()
 	numberString := strings.Split(text, " ")
 
 	bills, err := strconv.Atoi(numberString[0])
@@ -113,7 +114,7 @@ func getBillsDue(page *rod.Page) (int, error) {
 }
 
 func logout(browser *rod.Browser) {
-	page := browser.MustPage(consts.LogoutPage).MustWaitStable()
+	page := browser.MustPage(logoutPage).MustWaitStable()
 	defer page.MustClose()
 }
 
