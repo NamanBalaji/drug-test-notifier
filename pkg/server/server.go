@@ -23,13 +23,6 @@ func RunServer(cfg config.Config, triggerChan chan Trigger, done chan struct{}) 
 		return
 	})
 
-	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Ping")
-		w.WriteHeader(http.StatusOK)
-
-		return
-	})
-
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: mux,

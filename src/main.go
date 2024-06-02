@@ -41,7 +41,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := server.RunServer(cfg, triggerChan, done); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.RunServer(triggerChan, done); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Could not start server: %v\n", err)
 		}
 	}()
