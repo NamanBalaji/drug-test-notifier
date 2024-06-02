@@ -2,7 +2,7 @@ name: Run Go Application (Standard Time)
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Runs every day at 1 AM EST (6 AM UTC)
+    - cron: '*/5 * * * *'  # Runs every day at 1 AM EST (6 AM UTC)
 
 jobs:
   build:
