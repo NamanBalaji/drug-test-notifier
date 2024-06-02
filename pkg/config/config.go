@@ -3,13 +3,11 @@ package config
 import (
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Port        int
 	ProgramId   string
 	Username    string
 	Password    string
@@ -23,14 +21,8 @@ func LoadConfig() Config {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	port := os.Getenv("PORT")
-	intPort, err := strconv.Atoi(port)
-	if err != nil {
-		intPort = 8080
-	}
-
+	// Get the value of the environment variables
 	return Config{
-		Port:        intPort,
 		ProgramId:   os.Getenv("PROGRAM_ID"),
 		Username:    os.Getenv("EMAIL"),
 		Password:    os.Getenv("PASSWORD"),
