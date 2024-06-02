@@ -18,7 +18,7 @@ func main() {
 	debug := flag.Bool("debug", false, "Enable debug mode")
 	flag.Parse()
 	headless := false
-	if *debug {
+	if !*debug {
 		headless = true
 	}
 
