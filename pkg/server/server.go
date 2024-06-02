@@ -7,11 +7,13 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/NamanBalaji/drug-test-notifier/pkg/config"
 )
 
 type Trigger struct{}
 
-func RunServer(triggerChan chan Trigger, done chan struct{}) error {
+func RunServer(cfg config.Config, triggerChan chan Trigger, done chan struct{}) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/trigger", func(w http.ResponseWriter, r *http.Request) {
 		triggerChan <- Trigger{}
@@ -22,7 +24,7 @@ func RunServer(triggerChan chan Trigger, done chan struct{}) error {
 	})
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: mux,
 	}
 
