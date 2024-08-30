@@ -102,7 +102,14 @@ func getSelectedInfo(page *rod.Page, data *data.Data) error {
 }
 
 func getBillsDue(page *rod.Page) (int, error) {
-	text := page.MustElement(billsSelector).MustText()
+	text := ""
+	elems := page.MustElements(billsSelector0)
+	if len(elems) > 0 {
+		text = elems[0].MustText()
+	} else {
+		text = page.MustElement(billsSelector1).MustText()
+	}
+
 	numberString := strings.Split(text, " ")
 
 	bills, err := strconv.Atoi(numberString[0])
